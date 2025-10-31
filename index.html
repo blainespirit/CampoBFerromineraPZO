@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Informe de Avalúo Inmobiliario</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+    }
+  </style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-slate-100">
+  <div id="root"></div>
+
+<script type="module">
+import React, { useState, useEffect } from 'https://esm.sh/react@18.2.0';
+import ReactDOM from 'https://esm.sh/react-dom@18.2.0/client';
+
+// --- CONSTANTS ---
+const COMPARABLE_PROPERTIES = [
+  { 
+    id: 1, 
+    terrenoM2: 1145, 
+    construccionM2: 380, 
+    habitaciones: 7, 
+    banos: 8, 
+    estacionamiento: 8, 
+    cercadoElectrico: true, 
+    mobiliario: true, 
+    moderna: false, 
+    piscina: false, 
+    precioVenta: 80000,
+    enlace: "https://casa.mercadolibre.com.ve/MLV-918227440-casa-quinta-en-calle-cerrada-sector-campo-b-de-ferrominera-_JM#polycard_client=search-nordic&search_layout=grid&position=2&type=item&tracking_id=f97587da-26ca-46da-b19b-7fd1e438fbd5"
+  },
+  { 
+    id: 2, 
+    terrenoM2: 1150, 
+    construccionM2: 600, 
+    habitaciones: 9, 
+    banos: 10, 
+    estacionamiento: 7, 
+    cercadoElectrico: true, 
+    mobiliario: false, 
+    moderna: false, 
+    piscina: false, 
+    precioVenta: 90000,
+    enlace: "https://casa.mercadolibre.com.ve/MLV-910193804-inmobipina-vende-casa-en-campo-b-2-de-ferrominera-puerto-ordaz-estado-bolivar-jod-_JM#polycard_client=search-nordic&search_layout=grid&position=6&type=item&tracking_id=f97587da-26ca-46da-b19b-7fd1e438fbd5"
+  },
+  { 
+    id: 3, 
+    terrenoM2: 1337, 
+    construccionM2: 590, 
+    habitaciones: 5, 
+    banos: 5, 
+    estacionamiento: 10, 
+    cercadoElectrico: true, 
+    mobiliario: false, 
+    moderna: true, 
+    piscina: false, 
+    precioVenta: 130000,
+    enlace: "https://casa.mercadolibre.com.ve/MLV-922515618-majestuosa-casa-en-venta-campo-b-_JM#polycard_client=search-nordic&search_layout=grid&position=17&type=item&tracking_id=f97587da-26ca-46da-b19b-7fd1e438fbd5"
+  },
+  { 
+    id: 4, 
+    terrenoM2: 588.36, 
+    construccionM2: 300, 
+    habitaciones: 7, 
+    banos: 6, 
+    estacionamiento: 7, 
+    cercadoElectrico: true, 
+    mobiliario: true, 
+    moderna: true, 
+    piscina: true, 
+    precioVenta: 75000,
+    enlace: "https://casa.mercadolibre.com.ve/MLV-915157514-casa-en-venta-campo-b-_JM#polycard_client=search-nordic&search_layout=grid&position=33&type=item&tracking_id=f97587da-26ca-46da-b19b-7fd1e438fbd5"
+  },
+];
+
+const SUBJECT_PROPERTY = {
+  id: 1,
+  terrenoM2: 1103,
+  construccionM2: 250,
+  habitaciones: 5,
+  banos: 5,
+  estacionamiento: 8,
+  cercadoElectrico: false,
+  mobiliario: true,
+  moderna: true,
+  piscina: false,
+};
+
+const formatCurrency = (value, symbol = '') => {
+  if (typeof value !== 'number' || isNaN(value)) return `${symbol} --,--`;
+  const options = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  const formattedValue = value.toLocaleString('de-DE', options);
+  return `${symbol}${symbol ? ' ' : ''}${formattedValue}`;
+};
+
+// --- COMPONENTS ---
+
+const Header = ({ logoUrl, reportTitle, reportContextSubtitle, reportSubtitle, introductoryText }) => {
+  return React.createElement('header', { className: "py-8 text-center mb-6" },
+    React.createElement('img', { 
+      src: logoUrl, 
+      alt: "Logo Empresa LEDEZMA ASESORES", 
+      className: "mx-auto mb-6",
+      style: { width: '183px', height: 'auto' } 
+    }),
+    React.createElement('h1', { className: "text-3xl sm:text-4xl font-bold text-sky-700 mb-2" }, reportTitle),
+    React.createElement('p', { className: "text-xl font-bold text-sky-600 mb-2" }, reportContextSubtitle),
+    React.createElement('p', { className: "text-md text-slate-600 mb-4" }, reportSubtitle),
+    React.createElement('div', { className: "max-w-3xl mx-auto text-slate-700 text-sm sm:text-base text-center space-y-2" },
+      React.createElement('p', { className: "italic" }, introductoryText.salutation),
+      React.createElement('p', { className: "leading-relaxed" }, introductoryText.mainParagraph)
+    )
+  );
+};
+
+const Section = ({ title, subtitle, children, titleClassName }) => {
+  return React.createElement('section', { className: "bg-white p-6 shadow-xl rounded-xl" },
+    React.createElement('h2', { className: `text-2xl font-semibold mb-2 text-sky-700 ${titleClassName || ''}` }, title),
+    subtitle && React.createElement('p', { className: "text-sm text-slate-500 mb-6 italic" }, subtitle),
+    React.createElement('div', { className: "space-y-4" }, children)
+  );
+};
+
+const LabeledValue = ({ label, value, unit, compact, noBorder }) => {
+  let containerClass = "mb-3";
+  if (compact) {
+      containerClass = "flex justify-between items-center text-sm py-2";
+      if (!noBorder) {
+          containerClass += " border-b border-slate-200";
+      }
+  }
+
+  const labelClass = compact ? "text-slate-600" : "block text-sm font-medium text-slate-600 mb-1";
+  const valueBaseClass = "font-semibold";
+  const valueCombinedClass = `${valueBaseClass} text-slate-800`;
+
+  return React.createElement('div', { className: containerClass },
+    React.createElement('span', { className: labelClass }, `${label}:`),
+    React.createElement('div', { className: `flex items-baseline ${compact ? "text-right" : ""}` },
+      React.createElement('span', { className: valueCombinedClass }, value),
+      unit && React.createElement('span', { className: "text-xs text-slate-500 ml-1" }, unit)
+    )
+  );
+};
+
+const Tooltip = ({ text, children }) => {
+  return React.createElement('div', { className: "relative flex group" },
+    children,
+    React.createElement('div', { className: "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10" },
+      text,
+      React.createElement('svg', { className: "absolute text-slate-800 h-2 w-full left-0 top-full", x: "0px", y: "0px", viewBox: "0 0 255 255" },
+        React.createElement('polygon', { className: "fill-current", points: "0,0 127.5,127.5 255,0" })
+      )
+    )
+  );
+};
+
+const LandValueSection = () => {
+  const landValue = 27098.99;
+  const landArea = 1103.00;
+
+  return React.createElement(Section, { title: "Valor del Terreno" },
+    React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-3 gap-8 items-center" },
+      React.createElement('div', { className: "md:col-span-1 text-center bg-sky-50 p-6 rounded-xl border border-sky-200 shadow" },
+        React.createElement('p', { className: "text-sm font-medium text-sky-700 mb-1" }, "VALOR ESTIMADO DEL TERRENO"),
+        React.createElement('p', { className: "text-4xl font-bold text-sky-600 tracking-tight" }, formatCurrency(landValue, 'USD')),
+        React.createElement('hr', { className: "my-3 border-sky-200" }),
+        React.createElement(LabeledValue, { 
+          label: "Superficie de Parcela",
+          value: landArea.toLocaleString('de-DE'),
+          unit: "m²",
+          compact: true,
+          noBorder: true
+        })
+      ),
+      React.createElement('div', { className: "md:col-span-2 text-sm text-slate-600 bg-slate-50 p-4 rounded-lg border-l-4 border-slate-300" },
+        React.createElement('p', { className: "mb-2" }, "Valor obtenido por el Método Comparativo de Mercado, tomando como referencia una oferta de venta concretada de un inmueble con características similares."),
+        React.createElement('p', { className: "font-semibold text-slate-700 italic" }, "Referencia: Terreno en Campo B de Ferrominera, con 1.500 m². Vendido por 35.000 USD en Enero 2.025.")
+      )
+    )
+  );
+};
+
+const DepreciationParameter = ({ label, value, unit }) => React.createElement('div', { className: "flex justify-between items-center text-sm py-2 border-b border-slate-200" },
+    React.createElement('span', { className: "text-slate-600" }, label),
+    React.createElement('span', { className: "font-semibold text-slate-800 text-right" },
+        value,
+        unit && React.createElement('span', { className: "text-xs text-slate-500 ml-1" }, unit)
+    )
+);
+
+const depreciationTableData = [
+    { estado: "1", condicion: "NUEVO. No ha sufrido ni necesita reparaciones.", clasificacion: "Optimo- 0", coeficiente: 0 },
+    { estado: "1.5", condicion: "Excelente mantenimiento, casa recien construida.", clasificacion: "Muy bueno - MB", coeficiente: 0.032 },
+    { estado: "2", condicion: "REGULAR. Requiere o ha recibido reparaciones sin importancia", clasificacion: "Bueno B", coeficiente: 2.52 },
+    { estado: "2.5", condicion: "Mantenimiento no muy bueno", clasificacion: "Intermedio I", coeficiente: 8.09 },
+    { estado: "3", condicion: "Requiere reparaciones simples", clasificacion: "Regular R", coeficiente: 18.10 },
+    { estado: "3.5", condicion: "Mantenimiento deficiente.", clasificacion: "Deficiente -D", coeficiente: 32.20 },
+    { estado: "4", condicion: "Requiere reparaciones importantes", clasificacion: "Malo M", coeficiente: 52.60 },
+    { estado: "5", condicion: "Requiere muchas reparaciones importantes", clasificacion: "Muy Malo -MM", coeficiente: 72.20 },
+    { estado: null, condicion: "Sin valor= Valor de Demolición", clasificacion: "Demolición -DM", coeficiente: 100 }
+];
+
+const ConstructionValueSection = () => {
+    return React.createElement(Section, { title: "Cálculo Valor de la Construcción", subtitle: "CASA - ESTRUCTURA EN CONCRETO ARMADO" },
+        React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 gap-8" },
+            React.createElement('div', null,
+                React.createElement('h3', { className: "text-lg font-semibold text-sky-700 mb-3" }, "Parámetros de Depreciación"),
+                React.createElement('div', { className: "bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-1" },
+                    React.createElement(DepreciationParameter, { label: "Área de Construcción", value: "250", unit: "m²" }),
+                    React.createElement(DepreciationParameter, { label: "VR (Valor de Reposición)", value: "Bs. 274.837,50" }),
+                    React.createElement(DepreciationParameter, { label: "e (Estado)", value: "2,00" }),
+                    React.createElement(DepreciationParameter, { label: "C (Coeficiente)", value: "2,52%" }),
+                    React.createElement(DepreciationParameter, { label: "Ee (Edad Efectiva)", value: "28", unit: "años" }),
+                    React.createElement(DepreciationParameter, { label: "Vu (Vida Útil)", value: "60", unit: "años" })
+                ),
+                React.createElement('p', { className: "text-xs text-slate-500 mt-3 italic" },
+                   "*VR: Guías de PROMERCA (antes CINPRONET), acorde a la tipología del Inmueble en Estudio. 10.- UNIFAMILIAR CONSTRUCCION TRADICIONAL, REPORTE Julio 2019. Adaptada y Actualizada al 29/10/2025"
+                )
+            ),
+            React.createElement('div', { className: "space-y-4" },
+                React.createElement('h3', { className: "text-lg font-semibold text-sky-700" }, "Método de Ross-Heidecke"),
+                React.createElement('div', { className: "border border-sky-200 bg-sky-50 p-3 rounded-md text-sm text-sky-800" },
+                    "Este método es exclusivo para calcular la depreciación en la valoración de construcción, considera el estado de conservación calculando la depreciación mas acorde a la realidad."
+                ),
+                React.createElement('div', { className: "bg-yellow-400 p-4 rounded-lg shadow" },
+                    React.createElement('p', { className: "text-sm font-semibold text-gray-800 underline" }, "VALOR ACTUAL REDONDEADO="),
+                    React.createElement('p', { className: "text-2xl font-bold text-gray-900" }, "Bs. 46.521.850,00")
+                ),
+                React.createElement('div', { className: "bg-yellow-400 p-4 rounded-lg shadow relative" },
+                    React.createElement('p', { className: "text-sm font-semibold text-gray-800 underline" }, "VALOR ACTUAL $="),
+                    React.createElement('p', { className: "text-2xl font-bold text-gray-900" }, "$ 211.587,98"),
+                    React.createElement('div', { className: "absolute bottom-0 left-0 right-0 h-1.5 bg-sky-600 rounded-b-lg" })
+                )
+            )
+        ),
+        React.createElement('div', { className: "mt-8" },
+            React.createElement('h3', { className: "text-lg font-semibold text-sky-700 mb-4" }, "Tabla de Depreciación por Estado"),
+            React.createElement('div', { className: "overflow-x-auto rounded-lg border border-slate-200" },
+                React.createElement('table', { className: "w-full text-sm text-left text-slate-600" },
+                    React.createElement('thead', { className: "text-xs text-slate-700 uppercase bg-slate-100" },
+                        React.createElement('tr', null,
+                            React.createElement('th', { scope: "col", className: "px-4 py-3 w-16 text-center" }, "ESTADO"),
+                            React.createElement('th', { scope: "col", className: "px-4 py-3" }, "CONDICIÓN FÍSICA"),
+                            React.createElement('th', { scope: "col", className: "px-4 py-3" }, "CLASIFICACIÓN NORMAL"),
+                            React.createElement('th', { scope: "col", className: "px-4 py-3 text-right" }, "COEFICIENTE (%)")
+                        )
+                    ),
+                    React.createElement('tbody', null,
+                        depreciationTableData.map((row, index) => {
+                            const isHighlighted = row.estado === "2";
+                            return React.createElement('tr', { key: index, className: `border-b last:border-b-0 ${isHighlighted ? 'bg-sky-100' : 'bg-white'}` },
+                                React.createElement('td', { className: "px-4 py-2 text-center font-medium" }, row.estado),
+                                React.createElement('td', { className: "px-4 py-2" }, row.condicion),
+                                React.createElement('td', { className: "px-4 py-2" }, row.clasificacion),
+                                React.createElement('td', { className: "px-4 py-2 text-right" }, row.coeficiente.toLocaleString('de-DE', {minimumFractionDigits: 0, maximumFractionDigits: 3}))
+                            );
+                        })
+                    )
+                )
+            )
+        )
+    );
+};
+
+const BarChart = ({ data, title, valueFormatter }) => {
+    const maxValue = Math.max(...data.map(d => d.value));
+    return React.createElement('div', null,
+        React.createElement('h4', { className: "text-lg font-semibold text-sky-700 mb-4 text-center" }, title),
+        React.createElement('div', { className: "flex justify-around items-end h-64 bg-slate-50 p-4 rounded-lg border border-slate-200" },
+            data.map(item => React.createElement('div', { key: item.label, className: "flex flex-col items-center h-full w-1/5" },
+                React.createElement('div', { className: "flex-grow flex items-end w-full px-2" },
+                     React.createElement('div', { 
+                        className: "w-full rounded-t-md transition-all duration-500 relative",
+                        style: { height: `${(item.value / maxValue) * 95}%`, backgroundColor: item.color },
+                        title: valueFormatter(item.value)
+                    },
+                        React.createElement('span', { className: "text-xs text-slate-800 font-bold absolute -top-5 left-1/2 -translate-x-1/2" },
+                            valueFormatter(item.value)
+                        )
+                    )
+                ),
+                React.createElement('div', { className: "text-center text-xs font-medium text-slate-600 mt-2" }, item.label)
+            ))
+        )
+    );
+}
+
+const GroupedBarChart = ({ data }) => {
+    const maxValue = Math.max(...data.flatMap(d => [d.land, d.construction]));
+    return React.createElement('div', null,
+         React.createElement('h4', { className: "text-lg font-semibold text-sky-700 mb-4 text-center" }, "Área de Terreno vs. Construcción"),
+         React.createElement('div', { className: "flex justify-around items-end h-64 bg-slate-50 p-4 rounded-lg border border-slate-200" },
+            data.map(item => React.createElement('div', { key: item.label, className: "flex flex-col items-center h-full w-1/5" },
+                React.createElement('div', { className: "flex-grow flex items-end w-full px-1" },
+                    React.createElement('div', { className: "w-1/2 h-full flex items-end", title: `Terreno: ${item.land.toLocaleString('de-DE')} m²` },
+                        React.createElement('div', { 
+                            className: "w-full bg-sky-300 rounded-t-md relative",
+                            style: { height: `${(item.land / maxValue) * 95}%` }
+                        },
+                            React.createElement('span', { className: "text-xs text-slate-800 font-bold absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap" },
+                                `${item.land.toLocaleString('de-DE')} m²`
+                            )
+                        )
+                    ),
+                    React.createElement('div', { className: "w-1/2 h-full flex items-end", title: `Construcción: ${item.construction.toLocaleString('de-DE')} m²` },
+                        React.createElement('div', { 
+                            className: "w-full bg-sky-600 rounded-t-md relative",
+                            style: { height: `${(item.construction / maxValue) * 95}%` }
+                        },
+                            React.createElement('span', { className: "text-xs text-slate-800 font-bold absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap" },
+                                `${item.construction.toLocaleString('de-DE')} m²`
+                            )
+                        )
+                    )
+                ),
+                React.createElement('div', { className: "text-center text-xs font-medium text-slate-600 mt-2" }, item.label)
+            ))
+        ),
+        React.createElement('div', { className: "flex justify-center items-center gap-4 mt-3 text-xs" },
+            React.createElement('div', { className: "flex items-center gap-1" }, React.createElement('div', { className: "w-3 h-3 bg-sky-300 rounded-sm" }), React.createElement('span', null, "Terreno")),
+            React.createElement('div', { className: "flex items-center gap-1" }, React.createElement('div', { className: "w-3 h-3 bg-sky-600 rounded-sm" }), React.createElement('span', null, "Construcción"))
+        )
+    );
+};
+
+const ValuationCharts = ({ comparables, subjectProperty, subjectValuation }) => {
+    const pricePerSqMData = [
+        ...comparables.map(c => ({
+            label: `Comp ${c.id}`,
+            value: c.precioVenta / c.construccionM2,
+            color: '#7DD3FC' // sky-300
+        })),
+        {
+            label: 'A Valorar',
+            value: subjectValuation / subjectProperty.construccionM2,
+            color: '#0284C7' // sky-600
+        }
+    ];
+    const areaData = [
+         ...comparables.map(c => ({
+            label: `Comp ${c.id}`,
+            land: c.terrenoM2,
+            construction: c.construccionM2,
+        })),
+        {
+            label: 'A Valorar',
+            land: subjectProperty.terrenoM2,
+            construction: subjectProperty.construccionM2,
+        }
+    ];
+    return React.createElement(Section, { title: "Visualización de Datos de Mercado" },
+        React.createElement('div', { className: "grid grid-cols-1 lg:grid-cols-2 gap-12" },
+            React.createElement(BarChart, { 
+                data: pricePerSqMData,
+                title: "Precio por Metro Cuadrado (Construcción)",
+                valueFormatter: (val) => formatCurrency(val, 'USD')
+            }),
+            React.createElement(GroupedBarChart, { 
+                data: areaData
+            })
+        )
+    );
+};
+
+const stats = {
+  mean: (arr) => arr.reduce((a, b) => a + b, 0) / arr.length,
+  median: (arr) => {
+    const mid = Math.floor(arr.length / 2),
+      nums = [...arr].sort((a, b) => a - b);
+    return arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
+  },
+  mode: (arr) => {
+    const mode = {};
+    let max = 0, count = 0;
+    arr.forEach(item => {
+      mode[item] = (mode[item] || 0) + 1;
+      if (mode[item] > count) {
+        max = item;
+        count = mode[item];
+      }
+    });
+    return count > 1 ? max : 'N/A';
+  },
+  variance: (arr) => {
+    const mean = stats.mean(arr);
+    return arr.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / (arr.length - 1);
+  },
+  stdDev: (arr) => Math.sqrt(stats.variance(arr)),
+  q1: (arr) => {
+      const sorted = [...arr].sort((a, b) => a - b);
+      const pos = (sorted.length - 1) * 0.25;
+      const base = Math.floor(pos);
+      const rest = pos - base;
+      return sorted[base + 1] !== undefined ? sorted[base] + rest * (sorted[base + 1] - sorted[base]) : sorted[base];
+  },
+  q3: (arr) => {
+      const sorted = [...arr].sort((a, b) => a - b);
+      const pos = (sorted.length - 1) * 0.75;
+      const base = Math.floor(pos);
+      const rest = pos - base;
+      return sorted[base + 1] !== undefined ? sorted[base] + rest * (sorted[base + 1] - sorted[base]) : sorted[base];
+  },
+  skewness: (arr) => {
+    const n = arr.length;
+    const mean = stats.mean(arr);
+    const stdDev = stats.stdDev(arr);
+    if (stdDev === 0) return 0;
+    const m3 = arr.reduce((acc, val) => acc + Math.pow(val - mean, 3), 0) / n;
+    return m3 / Math.pow(stdDev, 3);
+  },
+  kurtosis: (arr) => {
+    const n = arr.length;
+    const mean = stats.mean(arr);
+    const stdDev = stats.stdDev(arr);
+    if (stdDev === 0) return 0;
+    const m4 = arr.reduce((acc, val) => acc + Math.pow(val - mean, 4), 0) / n;
+    return (m4 / Math.pow(stdDev, 4)) - 3;
+  },
+  pearson: (arrX, arrY) => {
+    if (arrX.length !== arrY.length || arrX.length < 2) return NaN;
+    const n = arrX.length;
+    const meanX = stats.mean(arrX);
+    const meanY = stats.mean(arrY);
+    let num = 0, sumSqX = 0, sumSqY = 0;
+    for (let i = 0; i < n; i++) {
+        const devX = arrX[i] - meanX;
+        const devY = arrY[i] - meanY;
+        num += devX * devY;
+        sumSqX += devX * devX;
+        sumSqY += devY * devY;
+    }
+    const den = Math.sqrt(sumSqX * sumSqY);
+    return den === 0 ? 0 : num / den;
+  }
+};
+
+const POOL_VALUE = 8000;
+const MODERN_VALUE = 6000;
+const FURNITURE_VALUE = 3000;
+const FENCE_VALUE = 1500;
+
+const STAT_DESCRIPTIONS = {
+  mean: 'La media aritmética o promedio de los precios ajustados. Es el indicador central utilizado para estimar el valor de mercado.',
+  stdErr: 'El error típico de la media. Mide la precisión de la media como una estimación del verdadero valor de mercado; un valor más bajo indica mayor precisión.',
+  median: 'El valor que se encuentra en el centro del conjunto de datos ordenado. Es menos sensible a los valores atípicos (outliers) que la media.',
+  mode: 'El valor que aparece con más frecuencia en el conjunto de datos. Puede indicar un punto de precio común en el mercado.',
+  stdDev: 'La desviación estándar. Mide la dispersión o variabilidad de los precios ajustados. Un valor bajo significa que los precios de los comparables son muy consistentes y cercanos entre sí.',
+  variance: 'La varianza de la muestra. Es la desviación estándar al cuadrado. Proporciona una medida de la dispersión de los datos.',
+  kurtosis: 'La curtosis. Mide qué tan "puntiaguda" es la distribución de precios. Un valor positivo (leptocúrtica) indica colas más pesadas y una mayor probabilidad de valores extremos.',
+  skewness: 'El coeficiente de asimetría. Indica la simetría de la distribución de precios. Un valor cercano a cero sugiere una distribución simétrica.',
+  pearsonCorrelation: 'El coeficiente de correlación de Pearson. Mide la fuerza y dirección de la relación lineal entre el tamaño de la construcción y el precio ajustado. Un valor cercano a +1 indica una fuerte relación positiva.',
+  range: 'El rango. Es la diferencia entre el precio ajustado máximo y mínimo. Muestra la amplitud total de los valores en el mercado analizado.',
+  min: 'El valor mínimo. El precio ajustado más bajo en la muestra homogeneizada.',
+  max: 'El valor máximo. El precio ajustado más alto en la muestra homogeneizada.',
+  count: 'El número de muestras. La cantidad de propiedades comparables utilizadas en el cálculo final después de excluir los outliers.'
+};
+
+const performStatisticalValuation = (comparables, subjectProperty) => {
+    if (comparables.length < 3) return null;
+    const avgPricePerM2 = stats.mean(comparables.map(c => c.precioVenta / c.construccionM2));
+    const adjustedComparables = comparables.map(comp => {
+        let adjustedPrice = comp.precioVenta;
+        const details = [{ reason: 'Precio de Venta Original', amount: comp.precioVenta }];
+        const sizeDiff = subjectProperty.construccionM2 - comp.construccionM2;
+        const sizeAdjustment = sizeDiff * avgPricePerM2;
+        if (sizeAdjustment !== 0) {
+            details.push({ reason: `Ajuste por Tamaño (${sizeDiff.toFixed(2)} m²)`, amount: sizeAdjustment });
+            adjustedPrice += sizeAdjustment;
+        }
+        const features = [
+            { name: 'piscina', value: POOL_VALUE, label: 'Piscina' },
+            { name: 'moderna', value: MODERN_VALUE, label: 'Diseño Moderno' },
+            { name: 'mobiliario', value: FURNITURE_VALUE, label: 'Mobiliario' },
+            { name: 'cercadoElectrico', value: FENCE_VALUE, label: 'Cercado Eléctrico' },
+        ];
+        features.forEach(feature => {
+            let adj = 0;
+            if (subjectProperty[feature.name] && !comp[feature.name]) {
+                adj = feature.value;
+                details.push({ reason: `Ajuste por ${feature.label} (Añadido)`, amount: adj });
+            }
+            if (!subjectProperty[feature.name] && comp[feature.name]) {
+                adj = -feature.value;
+                details.push({ reason: `Ajuste por ${feature.label} (Sustraído)`, amount: adj });
+            }
+            adjustedPrice += adj;
+        });
+        return { property: comp, adjustedPrice, details };
+    });
+    const adjustedPrices = adjustedComparables.map(c => c.adjustedPrice);
+    const q1 = stats.q1(adjustedPrices);
+    const q3 = stats.q3(adjustedPrices);
+    const iqr = q3 - q1;
+    const lowerBound = q1 - 1.5 * iqr;
+    const upperBound = q3 + 1.5 * iqr;
+    const outliers = adjustedComparables.filter(c => c.adjustedPrice < lowerBound || c.adjustedPrice > upperBound);
+    const homogenizedSample = adjustedComparables.filter(c => c.adjustedPrice >= lowerBound && c.adjustedPrice <= upperBound);
+    const homogenizedPrices = homogenizedSample.map(c => c.adjustedPrice);
+    const homogenizedSizes = homogenizedSample.map(c => c.property.construccionM2);
+    if (homogenizedPrices.length < 2) return null;
+    const count = homogenizedPrices.length;
+    const mean = stats.mean(homogenizedPrices);
+    const stdDev = stats.stdDev(homogenizedPrices);
+    const descriptiveStats = {
+        count: count,
+        mean: mean,
+        stdErr: stdDev / Math.sqrt(count),
+        median: stats.median(homogenizedPrices),
+        mode: stats.mode(homogenizedPrices),
+        stdDev: stdDev,
+        variance: stats.variance(homogenizedPrices),
+        kurtosis: stats.kurtosis(homogenizedPrices),
+        skewness: stats.skewness(homogenizedPrices),
+        range: Math.max(...homogenizedPrices) - Math.min(...homogenizedPrices),
+        min: Math.min(...homogenizedPrices),
+        max: Math.max(...homogenizedPrices),
+        pearsonCorrelation: stats.pearson(homogenizedSizes, homogenizedPrices),
+    };
+    return { stats: descriptiveStats, outliers, adjustedComparables };
+};
+
+const ValuationReport = ({ comparables, subjectProperty, valuationResult, loading }) => {
+  const renderBoolean = (value) => value ? React.createElement('span', { className: "text-green-600 font-bold" }, "✓ Sí") : React.createElement('span', { className: "text-red-500 font-bold" }, "✗ No");
+  
+  if (loading) {
+    return React.createElement(Section, { title: "Análisis Estadístico de Mercado" },
+        React.createElement('div', { className: "text-center py-8" },
+            React.createElement('p', { className: "text-lg text-slate-600" }, "Procesando datos y realizando cálculo estadístico..."),
+            React.createElement('div', { className: "mt-4 h-2 bg-slate-200 rounded-full overflow-hidden" },
+                React.createElement('div', { className: "h-full bg-sky-500 animate-pulse w-full" })
+            )
+        )
+    );
+  }
+
+  if (!valuationResult) {
+     return React.createElement(Section, { title: "Error de Cálculo" }, React.createElement('p', { className: "text-center text-red-500" }, "No se pudo realizar el cálculo. Se necesitan al menos 3 propiedades comparables."));
+  }
+
+  const { stats: valuationStats, outliers, adjustedComparables } = valuationResult;
+  const formatStat = (val) => typeof val === 'number' ? val.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) : val;
+  const currencyStat = (val) => formatCurrency(val, 'USD');
+  
+  const statsToDisplay = [
+      { key: 'mean', label: 'Media', value: currencyStat(valuationStats.mean) }, { key: 'stdErr', label: 'Error Típico', value: currencyStat(valuationStats.stdErr) },
+      { key: 'median', label: 'Mediana', value: currencyStat(valuationStats.median) }, { key: 'mode', label: 'Moda', value: typeof valuationStats.mode === 'number' ? currencyStat(valuationStats.mode) : valuationStats.mode },
+      { key: 'stdDev', label: 'Desviación Estándar', value: currencyStat(valuationStats.stdDev) }, { key: 'variance', label: 'Varianza de la Muestra', value: formatStat(valuationStats.variance) },
+      { key: 'kurtosis', label: 'Curtosis', value: formatStat(valuationStats.kurtosis) }, { key: 'skewness', label: 'Coeficiente de Asimetría', value: formatStat(valuationStats.skewness) },
+      { key: 'pearsonCorrelation', label: 'Correlación de Pearson (Tamaño/Valor)', value: formatStat(valuationStats.pearsonCorrelation) }, { key: 'range', label: 'Rango', value: currencyStat(valuationStats.range) },
+      { key: 'min', label: 'Mínimo', value: currencyStat(valuationStats.min) }, { key: 'max', label: 'Máximo', value: currencyStat(valuationStats.max) },
+      { key: 'count', label: 'Nº de Muestras (Homogenizadas)', value: valuationStats.count },
+  ];
+
+  return React.createElement(React.Fragment, null,
+    React.createElement(Section, { title: "Análisis Comparativo de Mercado", subtitle: "Propiedades utilizadas como referencia para la valuación y sus precios teóricos ajustados." },
+        React.createElement('div', { className: "overflow-x-auto rounded-lg border border-slate-200" },
+            React.createElement('table', { className: "w-full text-sm text-left text-slate-500" },
+                React.createElement('thead', { className: "text-xs text-slate-700 uppercase bg-slate-100" },
+                    React.createElement('tr', null,
+                        React.createElement('th', { scope: "col", className: "px-4 py-3" }, "Referencia"), React.createElement('th', { scope: "col", className: "px-4 py-3 text-center" }, "Enlace"),
+                        React.createElement('th', { scope: "col", className: "px-4 py-3 text-right" }, "Terreno (m²)"), React.createElement('th', { scope: "col", className: "px-4 py-3 text-right" }, "Constr. (m²)"),
+                        React.createElement('th', { scope: "col", className: "px-4 py-3 text-center" }, "Hab."), React.createElement('th', { scope: "col", className: "px-4 py-3 text-center" }, "Baños"),
+                        React.createElement('th', { scope: "col", className: "px-4 py-3 text-center" }, "Estac."), React.createElement('th', { scope: "col", className: "px-4 py-3 text-center" }, "C. Eléc."),
+                        React.createElement('th', { scope: "col", className: "px-4 py-3 text-center" }, "Mob."), React.createElement('th', { scope: "col", className: "px-4 py-3 text-center" }, "Piscina"),
+                        React.createElement('th', { scope: "col", className: "px-4 py-3 text-center" }, "Moderna"), React.createElement('th', { scope: "col", className: "px-4 py-3 text-right" }, "Precio Venta"),
+                        React.createElement('th', { scope: "col", className: "px-4 py-3 text-right" }, "Precio Ajustado")
+                    )
+                ),
+                React.createElement('tbody', null,
+                    comparables.map(prop => {
+                        const adjustedData = adjustedComparables.find(ac => ac.property.id === prop.id);
+                        const isOutlier = outliers.some(o => o.property.id === prop.id);
+                        return React.createElement('tr', { key: prop.id, className: "bg-white border-b last:border-b-0 hover:bg-slate-50" },
+                            React.createElement('td', { className: "px-4 py-3 font-medium text-slate-900 whitespace-nowrap" }, `Comparable ${prop.id}`),
+                            React.createElement('td', { className: "px-4 py-3 text-center" }, React.createElement('a', { href: prop.enlace, target: "_blank", rel: "noopener noreferrer", className: "inline-flex items-center text-sky-600 hover:text-sky-800 hover:underline font-medium text-xs", title: "Ver enlace del comparable" }, React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", className: "h-4 w-4 mr-1", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", strokeWidth: 2 }, React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", d: "M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" })), "Ver")),
+                            React.createElement('td', { className: "px-4 py-3 text-right" }, prop.terrenoM2.toLocaleString('de-DE')), React.createElement('td', { className: "px-4 py-3 text-right" }, prop.construccionM2.toLocaleString('de-DE')),
+                            React.createElement('td', { className: "px-4 py-3 text-center" }, prop.habitaciones), React.createElement('td', { className: "px-4 py-3 text-center" }, prop.banos),
+                            React.createElement('td', { className: "px-4 py-3 text-center" }, prop.estacionamiento), React.createElement('td', { className: "px-4 py-3 text-center" }, renderBoolean(prop.cercadoElectrico)),
+                            React.createElement('td', { className: "px-4 py-3 text-center" }, renderBoolean(prop.mobiliario)), React.createElement('td', { className: "px-4 py-3 text-center" }, renderBoolean(prop.piscina)),
+                            React.createElement('td', { className: "px-4 py-3 text-center" }, renderBoolean(prop.moderna)), React.createElement('td', { className: "px-4 py-3 text-right" }, formatCurrency(prop.precioVenta, 'USD')),
+                            React.createElement('td', { className: `px-4 py-3 text-right font-bold ${isOutlier ? 'text-red-500 line-through' : 'text-sky-700'}` }, formatCurrency(adjustedData ? adjustedData.adjustedPrice : NaN, 'USD'))
+                        );
+                    })
+                )
+            )
+        )
+    ),
+    React.createElement(Section, { title: "Inmueble a Valorar", subtitle: "Detalles de la propiedad bajo análisis." },
+        React.createElement('div', { className: "grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-1" },
+            React.createElement(LabeledValue, { label: "Área de Terreno", value: subjectProperty.terrenoM2.toLocaleString('de-DE'), unit: "m²", compact: true }), React.createElement(LabeledValue, { label: "Área de Construcción", value: subjectProperty.construccionM2.toLocaleString('de-DE'), unit: "m²", compact: true }),
+            React.createElement(LabeledValue, { label: "Habitaciones", value: subjectProperty.habitaciones, compact: true }), React.createElement(LabeledValue, { label: "Baños", value: subjectProperty.banos, compact: true }),
+            React.createElement(LabeledValue, { label: "Puestos de Estacionamiento", value: subjectProperty.estacionamiento, compact: true }), React.createElement(LabeledValue, { label: "Cercado Eléctrico", value: renderBoolean(subjectProperty.cercadoElectrico), compact: true }),
+            React.createElement(LabeledValue, { label: "Mobiliario Incluido", value: renderBoolean(subjectProperty.mobiliario), compact: true }), React.createElement(LabeledValue, { label: "Diseño Moderno", value: renderBoolean(subjectProperty.moderna), compact: true }),
+            React.createElement(LabeledValue, { label: "Piscina", value: renderBoolean(subjectProperty.piscina), compact: true })
+        )
+    ),
+    outliers.length > 0 && React.createElement(Section, { title: "Análisis y Exclusión de Outliers" },
+        React.createElement('div', { className: "bg-amber-50 border-l-4 border-amber-400 p-4 rounded-md" },
+            React.createElement('p', { className: "text-sm text-amber-800" }, "Para asegurar la precisión del avalúo, se realizó un análisis estadístico para detectar valores atípicos (outliers) usando el método del Rango Intercuartílico (IQR). Las siguientes propiedades fueron identificadas como outliers y excluidas del cálculo final para homogeneizar la muestra:"),
+            React.createElement('ul', { className: "list-disc pl-5 mt-2 text-sm text-amber-900 font-semibold" },
+                outliers.map(o => React.createElement('li', { key: o.property.id }, `Comparable ${o.property.id} (Precio Ajustado: ${currencyStat(o.adjustedPrice)})`))
+            )
+        )
+    ),
+    React.createElement(Section, { title: "Análisis Estadístico Descriptivo y Conclusión de Valor" },
+      React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4" },
+        React.createElement('div', null,
+            React.createElement('h3', { className: "font-semibold text-lg text-slate-700 mb-3 border-b pb-2" }, "Resultados Estadísticos"),
+            React.createElement('div', { className: "text-sm space-y-2" },
+                statsToDisplay.map(({ key, label, value }) => React.createElement(Tooltip, { key: key, text: STAT_DESCRIPTIONS[key] || 'No hay descripción disponible.' },
+                    React.createElement('div', { className: "flex justify-between w-full cursor-help py-0.5" },
+                        React.createElement('span', { className: "text-slate-600 border-b border-dotted border-slate-400" }, `${label}:`),
+                        React.createElement('span', { className: "font-bold" }, value)
+                    )
+                ))
+            )
+        ),
+        React.createElement('div', { className: "flex flex-col justify-between" },
+          React.createElement('div', null,
+            React.createElement('h3', { className: "font-semibold text-lg text-slate-700 mb-3 border-b pb-2" }, "Análisis del Valuador"),
+            React.createElement('p', { className: "text-sm text-slate-600 leading-relaxed" },
+              "El valor de mercado se ha determinado utilizando la media estadística de los precios ajustados, tras un proceso de homogeneización que excluyó ",
+              outliers.length > 0 ? `${outliers.length} propiedad(es) atípica(s)` : "cero propiedades atípicas",
+              `. El Coeficiente de Variación (${((valuationStats.stdDev / valuationStats.mean) * 100).toFixed(2)}%) indica la dispersión de los datos. Adicionalmente, el Coeficiente de Correlación de Pearson de `,
+              React.createElement('strong', null, valuationStats.pearsonCorrelation.toFixed(4)),
+              " muestra una fuerte relación lineal positiva entre el tamaño de la construcción y el valor ajustado, lo que refuerza la consistencia del análisis de mercado."
+            )
+          ),
+          React.createElement('div', { className: "bg-sky-50 border-t-4 border-sky-500 p-6 rounded-lg text-center shadow-md mt-6" },
+              React.createElement('p', { className: "text-lg font-semibold text-sky-800 mb-2" }, "Valor de Mercado Estimado (Media)"),
+              React.createElement('p', { className: "text-5xl font-bold text-sky-700 tracking-tight" }, currencyStat(valuationStats.mean)),
+              React.createElement('p', { className: "text-sm mt-2 text-slate-600" }, `(Valor/m²: ${currencyStat(valuationStats.mean / subjectProperty.construccionM2)})`)
+          )
+        )
+      )
+    ),
+    React.createElement(Section, { title: "Metodología de Ajuste de Precios", subtitle: "Cómo se homogeneizan los precios para una comparación justa." },
+      React.createElement('div', { className: "text-sm text-slate-600 leading-relaxed space-y-4" },
+        React.createElement('p', null, "Para poder comparar propiedades que no son idénticas, es necesario realizar ajustes a sus precios de venta. El \"Precio Ajustado\" es un valor calculado que representa el precio teórico que tendría una propiedad comparable si tuviera las mismas características que el inmueble a valorar. Este proceso tiene dos componentes principales:"),
+        React.createElement('ol', { className: "list-decimal list-inside space-y-3 pl-4" },
+          React.createElement('li', null, React.createElement('strong', null, "Ajuste por Tamaño de Construcción:"), " Se calcula la diferencia en metros cuadrados (m²) entre la propiedad a valorar y cada comparable. Esta diferencia se multiplica por el precio promedio por m² del mercado y el resultado se suma (si el comparable es más pequeño) o se resta (si es más grande) a su precio de venta."),
+          React.createElement('li', null, React.createElement('strong', null, "Ajuste por Características Clave:"), " Se asigna un valor monetario a características distintivas. Si la propiedad a valorar tiene una ventaja sobre el comparable, se suma este valor. Si tiene una desventaja, se resta. Los valores utilizados son:",
+            React.createElement('ul', { className: "list-disc list-inside pl-6 mt-2 space-y-1 text-slate-700" },
+              React.createElement('li', null, React.createElement('strong', null, "Piscina:"), ` ${formatCurrency(POOL_VALUE, 'USD')}`),
+              React.createElement('li', null, React.createElement('strong', null, "Diseño Moderno:"), ` ${formatCurrency(MODERN_VALUE, 'USD')}`),
+              React.createElement('li', null, React.createElement('strong', null, "Mobiliario Incluido:"), ` ${formatCurrency(FURNITURE_VALUE, 'USD')}`),
+              React.createElement('li', null, React.createElement('strong', null, "Cercado Eléctrico:"), ` ${formatCurrency(FENCE_VALUE, 'USD')}`)
+            )
+          )
+        ),
+        React.createElement('h4', { className: "text-lg font-semibold text-sky-700 mt-6 mb-3 border-t pt-4" }, "Desglose del Cálculo por Comparable"),
+        React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 gap-6" },
+          adjustedComparables.map(({ property, adjustedPrice, details }) => React.createElement('div', { key: property.id, className: "bg-slate-50 p-4 rounded-lg border border-slate-200" },
+            React.createElement('h5', { className: "font-bold text-slate-800 mb-3 text-center" }, `Comparable ${property.id}`),
+            React.createElement('div', { className: "text-sm space-y-1" },
+              details.map((detail, index) => React.createElement('div', { key: index, className: "flex justify-between border-b border-slate-200 last:border-b-0 py-1.5" },
+                React.createElement('span', { className: "text-slate-600 pr-2" }, detail.reason),
+                React.createElement('span', { className: `font-medium whitespace-nowrap ${index === 0 ? 'text-slate-800' : (detail.amount >= 0 ? 'text-green-600' : 'text-red-600')}` }, `${index !== 0 && detail.amount >= 0 ? '+' : ''}${formatCurrency(detail.amount)}`)
+              ))
+            ),
+            React.createElement('div', { className: "flex justify-between mt-3 pt-2 border-t-2 border-slate-400" },
+              React.createElement('span', { className: "font-bold text-slate-800" }, "Precio Ajustado Final"),
+              React.createElement('span', { className: "font-bold text-sky-700" }, formatCurrency(adjustedPrice, 'USD'))
+            )
+          ))
+        )
+      )
+    ),
+    React.createElement(Section, { title: "Interpretación del Coeficiente de Correlación de Pearson", subtitle: "Comprendiendo la relación entre el tamaño y el valor." },
+      React.createElement('div', { className: "text-sm text-slate-600 leading-relaxed space-y-3" },
+        React.createElement('p', null, 
+          "El Coeficiente de Correlación de Pearson (r) es una medida estadística que cuantifica la fuerza y dirección de una relación lineal entre dos variables. Su valor oscila entre -1 (correlación negativa perfecta) y +1 (correlación positiva perfecta). Un valor cercano a 0 indica que no hay una relación lineal clara."
+        ),
+        React.createElement('p', null, 
+          "En este análisis, se ha calculado la correlación entre el ", 
+          React.createElement('strong', null, "tamaño de la construcción (m²)"), 
+          " y el ", 
+          React.createElement('strong', null, "precio ajustado"), 
+          " de las propiedades. El valor obtenido de ", 
+          React.createElement('strong', { className: "text-sky-700" }, valuationStats.pearsonCorrelation.toFixed(4)), 
+          " indica una correlación positiva muy fuerte."
+        ),
+        React.createElement('p', { className: "font-semibold text-slate-700" }, 
+          "Conclusión: Un coeficiente tan cercano a +1 demuestra que, en este mercado específico, existe una tendencia clara y consistente: a mayor tamaño de construcción, mayor es el valor ajustado de la propiedad. Esta fuerte relación lineal añade un grado significativo de confianza y validez al método de valoración utilizado."
+        )
+      )
+    ),
+    React.createElement(ValuationCharts, { comparables, subjectProperty, subjectValuation: valuationStats.mean })
+  );
+};
+
+const ConclusionsSection = ({ technicalValue, marketValue, loading }) => {
+  const recommendedPrice = 65000;
+  
+  if (loading) {
+      return React.createElement(Section, { title: "Conclusiones y Recomendaciones" },
+          React.createElement('div', { className: "text-center py-4" },
+              React.createElement('p', { className: "text-slate-600" }, "Esperando el análisis de mercado para generar las conclusiones finales...")
+          )
+      );
+  }
+  
+  if (!technicalValue || !marketValue) return null;
+
+  const percentageAboveMarket = ((recommendedPrice - marketValue) / marketValue) * 100;
+
+  return React.createElement(Section, { title: "Conclusiones y Recomendaciones", subtitle: "Síntesis del Análisis y Estrategia de Comercialización Sugerida" },
+    React.createElement('div', { className: "space-y-4 text-sm text-slate-700 leading-relaxed" },
+      React.createElement('p', null, 
+        "El presente avalúo ha determinado dos valores fundamentales para el inmueble, utilizando metodologías distintas y complementarias. Por un lado, se determinó el ", React.createElement('strong', null, "Valor según el Enfoque de Costo"),
+        ", que representa el valor físico del activo. Este se calcula sumando el valor del terreno (estimado por comparación) con el costo de reposición de la construcción ajustado por su depreciación, suma que asciende a ", React.createElement('strong', null, formatCurrency(technicalValue, 'USD')),
+        ". Por otro lado, el ", React.createElement('strong', null, "Valor de Mercado Estimado"),
+        ", derivado del análisis comparativo y estadístico de ofertas reales en la zona, se sitúa en ", React.createElement('strong', null, formatCurrency(marketValue, 'USD')), "."
+      ),
+      React.createElement('div', null,
+        React.createElement('h4', { className: "font-bold text-slate-800 mb-2" }, "¿Por qué existe esta diferencia entre el Valor de Costo y el Valor de Mercado?"),
+        React.createElement('p', { className: "mb-3" }, "La brecha entre lo que teóricamente cuesta construir la propiedad y lo que el mercado está dispuesto a pagar se explica por la compleja situación económica de Venezuela. A continuación, se desglosan los factores clave de manera sencilla:"),
+        React.createElement('ul', { className: "list-disc list-inside space-y-3 pl-2" },
+          React.createElement('li', null, React.createElement('strong', null, "El Comprador debe pagar de Contado (Ausencia de Crédito Hipotecario):"), " En un mercado sano, la mayoría de las personas compra una casa con un crédito bancario a largo plazo. En Venezuela, esta opción no existe. Esto significa que el universo de compradores se reduce drásticamente a solo aquellos que tienen el monto total del precio en efectivo. Al haber muchos menos compradores potenciales, la demanda se desploma y los vendedores deben bajar sus precios para poder competir por este pequeño grupo."),
+          React.createElement('li', null, React.createElement('strong', null, "Muchos Propietarios Necesitan Vender Rápido (Presión Vendedora):"), " Un número significativo de vendedores no está simplemente \"probando el mercado\", sino que tiene una necesidad urgente de vender para obtener liquidez (por motivos de emigración, inversiones, etc.). Esta urgencia los lleva a aceptar ofertas considerablemente más bajas para asegurar una venta rápida. Esta dinámica inunda el mercado de ofertas a la baja, presionando los precios de todas las propiedades."),
+          React.createElement('li', null, React.createElement('strong', null, "El Comprador es un Inversionista, no una Familia (Perfil del Comprador):"), " El comprador típico actual no es una familia buscando su hogar soñado, sino un inversionista que busca una oportunidad de negocio. Este perfil de comprador es extremadamente racional y sensible al precio; no tiene un apego emocional a la propiedad y solo comprará si el precio es lo suficientemente bajo como para considerarlo una excelente inversión a futuro. Esto intensifica la negociación a la baja.")
+        ),
+        React.createElement('p', { className: "mt-3 font-semibold" }, "En resumen, la combinación de estos factores crea un \"mercado de compradores\", donde la oferta supera con creces la demanda efectiva, contrayendo los precios de venta reales muy por debajo de su costo de reposición técnico.")
+      ),
+      React.createElement('div', { className: "bg-sky-50 border-l-4 border-sky-500 p-4 my-4 rounded-r-lg" },
+        React.createElement('h4', { className: "font-bold text-sky-800" }, "Recomendación de Precio de Promoción"),
+        React.createElement('p', null, 
+          "Considerando este contexto, se establece una estrategia de comercialización que equilibra el valor intrínseco del activo con la realidad del mercado. Se recomienda un ", React.createElement('strong', null, `Precio de Promoción de ${formatCurrency(recommendedPrice, 'USD')}`),
+          ". Este precio se posiciona un ", React.createElement('strong', null, `${percentageAboveMarket.toFixed(2)}%`),
+          " por encima del Valor de Mercado Estimado, creando un margen de negociación razonable sin dejar de ser competitivo para atraer al público comprador actual."
+        )
+      ),
+      React.createElement('p', null, 
+        "Esta recomendación proporciona al propietario una estrategia viable para la comercialización exitosa del inmueble. Para maximizar las probabilidades de venta en un plazo razonable, se sugiere complementar el precio atractivo con ", 
+        React.createElement('strong', null, "flexibilidad en las condiciones de pago"), 
+        " (si es posible) y la implementación de una ", 
+        React.createElement('strong', null, "estrategia de marketing segmentada"), 
+        ", dirigida a nichos de mercado con capacidad de compra."
+      ),
+      React.createElement('p', { className: "bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r-lg text-amber-900" },
+        React.createElement('strong', null, "Nota sobre la Volatilidad del Mercado:"),
+        " Es crucial reconocer la inestabilidad del entorno económico venezolano. Los precios inmobiliarios están sujetos a cambios constantes. Por lo tanto, se aconseja monitorear la evolución del mercado y estar dispuesto a ", 
+        React.createElement('strong', null, "ajustar el precio de promoción periódicamente"),
+        " para mantener la competitividad y responder a nuevas tendencias económicas."
+      )
+    )
+  );
+};
+
+const CertificationChip = ({ text }) => React.createElement('div', { className: "inline-flex items-center bg-sky-100 text-sky-800 text-sm font-medium px-3 py-1 rounded-full shadow-sm" },
+    React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", className: "h-4 w-4 mr-2 text-sky-600", viewBox: "0 0 20 20", fill: "currentColor" },
+      React.createElement('path', { fillRule: "evenodd", d: "M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zM10 15.5a5.5 5.5 0 100-11 5.5 5.5 0 000 11zM10 6.5a1 1 0 00-1 1v3.5a1 1 0 102 0v-3.5a1 1 0 00-1-1z", clipRule: "evenodd" })
+    ),
+    text
+);
+
+const AuthorInfo = () => {
+  return React.createElement('div', { className: "bg-slate-50 p-6 rounded-xl border-l-4 border-sky-500 shadow-lg" },
+    React.createElement('div', { className: "mb-6" },
+      React.createElement('h3', { className: "text-lg font-semibold text-slate-800 mb-3" }, "Elaborado por:"),
+      React.createElement('div', { className: "pl-2 space-y-1 text-slate-600" },
+        React.createElement('p', { className: "text-xl font-semibold text-sky-700" }, "Steven Gómez"),
+        React.createElement('p', null, "V-18.666.207"),
+        React.createElement('p', null, "Gerente de Oficina"),
+        React.createElement('p', null, "Sede Principal Ciudad Bolívar"),
+        React.createElement('p', { className: "font-bold text-slate-700 tracking-wide pt-2" }, "LEDEZMA ASESORES INMOBILIARIOS & FINANCIEROS C.A.")
+      )
+    ),
+    React.createElement('div', null,
+      React.createElement('h3', { className: "text-lg font-semibold text-slate-800 mb-4" }, "Certificaciones:"),
+      React.createElement('div', { className: "pl-2 flex flex-col sm:flex-row sm:flex-wrap gap-3" },
+        React.createElement(CertificationChip, { text: "Sociedad Venezolana de Economistas Tasadores N° 2404" }),
+        React.createElement(CertificationChip, { text: "SUDEBAN N° P-5.854" })
+      )
+    )
+  );
+};
+
+const Footer = () => {
+  const currentYear = new Date().getFullYear();
+  return React.createElement('footer', { className: "max-w-6xl mx-auto mt-12 py-8 text-center border-t border-slate-300" },
+    React.createElement('div', { className: "text-xs text-slate-500 space-y-2" },
+      React.createElement('p', { className: "mt-4" },
+        `© ${currentYear} LEDEZMA ASESORES INMOBILIARIOS & FINANCIEROS. Todos los derechos reservados. Este informe es para fines informativos y de consulta. La estimación de valor se basa en los datos de mercado proporcionados y un análisis estadístico.`
+      )
+    )
+  );
+};
+
+const App = () => {
+  const [valuationResult, setValuationResult] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    const result = performStatisticalValuation(COMPARABLE_PROPERTIES, SUBJECT_PROPERTY);
+    setTimeout(() => {
+      setValuationResult(result);
+      setLoading(false);
+    }, 500);
+  }, []);
+
+  const reportIntro = {
+    salutation: "Estimado Cliente,",
+    mainParagraph: "A continuación, se presenta el informe de avalúo para una Casa Quinta. El análisis utiliza dos metodologías complementarias: el método de costo de reposición para determinar el valor de la construcción, y el método comparativo de mercado para establecer el valor con base en ofertas actuales en la misma zona. El objetivo es proporcionar una estimación de valor precisa y doblemente justificada."
+  };
+
+  const technicalValue = 27098.99 + 211587.98;
+
+  return React.createElement('div', { className: "min-h-screen bg-slate-50 text-slate-800 p-2 sm:p-6" },
+    React.createElement(Header, { 
+      logoUrl: "https://ledezmaasesores.com/plantilla/img/logo.webp", 
+      reportTitle: "Informe de Avalúo de Mercado",
+      reportContextSubtitle: "Casa Quinta en Sector Campo B de Ferrominera, Puerto Ordaz",
+      reportSubtitle: `(${new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })})`,
+      introductoryText: reportIntro
+    }),
+    React.createElement('main', { className: "max-w-6xl mx-auto space-y-12 mt-6" },
+      React.createElement(LandValueSection, null),
+      React.createElement(ConstructionValueSection, null),
+      React.createElement(ValuationReport, {
+        comparables: COMPARABLE_PROPERTIES,
+        subjectProperty: SUBJECT_PROPERTY,
+        valuationResult: valuationResult,
+        loading: loading
+      }),
+      React.createElement(ConclusionsSection, { 
+        technicalValue: technicalValue,
+        marketValue: valuationResult?.stats.mean,
+        loading: loading
+      }),
+      React.createElement(AuthorInfo, null)
+    ),
+    React.createElement(Footer, null)
+  );
+};
+
+const rootElement = document.getElementById('root');
+const root = ReactDOM.createRoot(rootElement);
+root.render(React.createElement(App));
+
+</script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
